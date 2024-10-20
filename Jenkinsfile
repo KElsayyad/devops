@@ -3,18 +3,18 @@ pipeline {
     stages {
         stage('Master Branch'){
             stages{
-                stage('checkout') {
+               stage('checkout') {
                     steps {
-                        slackSend channel: '#jenkins-notifications', color: 'warning', message: "Build Started: ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n(${env.BUILD_URL})", notifyCommitters: true, tokenCredentialId: 'slack-webook'
-                        git credentialsId: 'github-yat-project', url: 'https://github.com/souzi-nada/reading-recommendations'    
+                        // slackSend channel: '#jenkins-notifications', color: 'warning', message: "Build Started: ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n(${env.BUILD_URL})", notifyCommitters: true, tokenCredentialId: 'slack-webook'
+                        git credentialsId: 'github_id', url: 'https://github.com/KElsayyad/devops'    
                     }
                 }
                 stage('build') {
                     steps {
-                        nodejs('node-23') {
+                       // nodejs('node-23') {
                         //   sh 'rm -rf node_modules && node --trace-warnings ... '
                           sh 'npm install'
-                        }
+                        //}
                     }
                 }
                 // stage('test'){
@@ -24,7 +24,7 @@ pipeline {
                 //         }
                 //     }
                 // }
-                stage('deploy'){
+                /* stage('deploy'){
                     when {
                         expression { env.BRANCH_NAME == 'master' }
                     }
@@ -40,7 +40,7 @@ pipeline {
                             sh "docker push suzy90/reading-recommendations:${env.BUILD_NUMBER}"
                         }
                     }
-                }
+                } */
                     }
             
         }
