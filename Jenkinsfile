@@ -3,8 +3,10 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Jenkins credentials ID
-        DOCKER_IMAGE = 'kareemelsayyad/devops_p' // Docker image name
+        DOCKER_IMAGE = 'kareemelsayyad/devops_project' // Docker image name
         DOCKER_TAG = 'latest' // Tag for the image
+        SLACK_CHANNEL = '#jenkins_notification' // Slack channel to send notifications
+        SLACK_CREDENTIALS_ID = 'jenkins_id' // Jenkins credentials ID for Slack
     }
 
     stages {
@@ -17,6 +19,9 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
+		withCredentials([string(credentialsId: 'DB_CONNECTION_STRING', variable: 'ENV_PROD')]) {
+                            sh 'echo "DB_CONNECTION_STRING = ${ENV_PROD}" >> .env.production'
+                }
                 script {
                     // Build the Docker image
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
@@ -37,11 +42,22 @@ pipeline {
         }
     }
 
-    post {
+   post {
+        success {
+            script {
+                // Send success notification to Slack
+                slackSend(channel: "${SLACK_CHANNEL}", message: "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+            }
+        }
+        failure {
+            script {
+                // Send failure notification to Slack
+                slackSend(channel: "${SLACK_CHANNEL}", message: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+            }
+        }
         always {
             // Clean up workspace
             cleanWs()
         }
     }
 }
-
