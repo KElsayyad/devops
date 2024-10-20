@@ -30,7 +30,7 @@ pipeline {
                     }
                     steps {
                         timeout(activity: true, time: 10) {
-                            slackSend channel: '#jenkins-notifications', message: '@channel Kindly approve or decline the manual trigger'
+                            slackSend channel: '#jenkins-notifications', message: '@channel Kindly approve or decline the manual trigger 1'
                             input 'Do you want to deploy?'
                             slackSend channel: '#jenkins-notifications', message: '@channel Thanks for Approval'
                         }
