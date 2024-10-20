@@ -1,62 +1,47 @@
 pipeline {
-    agent any
+    agent any 
+
+    environment {
+        DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Jenkins credentials ID
+        DOCKER_IMAGE = 'kareemelsayyad/devops' // Docker image name
+        DOCKER_TAG = 'latest' // Tag for the image
+    }
+
     stages {
-        stage('Master Branch'){
-            stages{
-               stage('checkout') {
-                    steps {
-                        // slackSend channel: '#jenkins-notifications', color: 'warning', message: "Build Started: ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n(${env.BUILD_URL})", notifyCommitters: true, tokenCredentialId: 'slack-webook'
-                        git credentialsId: 'github_id', url: 'https://github.com/KElsayyad/devops'    
+        stage('Checkout') {
+            steps {
+                // Checkout your code from version control
+                git 'https://github.com/KElsayyad/devops.git'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image
+                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                }
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // Log in to Docker Hub
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
+                        // Push the image to Docker Hub
+                        docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
                     }
                 }
-                stage('build') {
-                    steps {
-                       // nodejs('node-23') {
-                        //   sh 'rm -rf node_modules && node --trace-warnings ... '
-                          sh 'npm install -y'
-                        //}
-                    }
-                }
-                // stage('test'){
-                //     steps{
-                //       nodejs('node-23') {
-                //           sh 'npm test'
-                //         }
-                //     }
-                // }
-                /* stage('deploy'){
-                    when {
-                        expression { env.BRANCH_NAME == 'master' }
-                    }
-                    steps {
-                        timeout(activity: true, time: 10) {
-                            slackSend channel: '#jenkins-notifications', message: '@channel Kindly approve or decline the manual trigger 1'
-                            input 'Do you want to deploy?'
-                            slackSend channel: '#jenkins-notifications', message: '@channel Thanks for Approval'
-                        }
-                        sh "docker build -t suzy90/reading-recommendations:${env.BUILD_NUMBER} ."
-                        withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
-                            sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
-                            sh "docker push suzy90/reading-recommendations:${env.BUILD_NUMBER}"
-                        }
-                    }
-                } */
-                    }
-            
+            }
         }
     }
+
     post {
-      // only triggered when blue or green sign
-      success {
-          slackSend channel: '#jenkins-notifications', color: 'good', message: "Build Succeeded: ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n(${env.BUILD_URL})", notifyCommitters: true, tokenCredentialId: 'slack-webook'
-      }
-      // triggered when red sign
-      failure {
-          slackSend channel: '#jenkins-notifications', color: 'danger', message: "Build Failed: ${env.JOB_NAME} [${env.BUILD_NUMBER}]\n(${env.BUILD_URL})", notifyCommitters: true, tokenCredentialId: 'slack-webook'
-      }
-      // trigger every-works
-    //   always {
-    //       slackSend ...
-    //   }
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
     }
 }
+
