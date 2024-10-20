@@ -13,7 +13,7 @@ pipeline {
                     steps {
                        // nodejs('node-23') {
                         //   sh 'rm -rf node_modules && node --trace-warnings ... '
-                          sh 'npm install'
+                          sh 'npm install -y'
                         //}
                     }
                 }
