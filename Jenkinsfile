@@ -71,13 +71,15 @@ pipeline {
                 expression { currentBuild.result != 'FAILURE' } // Only proceed if tests passed
             }
             steps {
-                script {
-                    // Stop and remove any existing container
-                    sh 'docker stop my_container || true'
-                    sh 'docker rm my_container || true'
-
-                    // Run the new container
-                    sh "docker run -d --name my_container -e DB_CONNECTION_STRING=${ENV_PROD} ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                withCredentials([string(credentialsId: 'DB_CONNECTION_STRING', variable: 'ENV_PROD')]) {
+                    script {
+                        // Stop and remove any existing container
+                        sh 'docker stop my_container || true'
+                        sh 'docker rm my_container || true'
+    
+                        // Run the new container
+                        sh "docker run -d --name my_container -e DB_CONNECTION_STRING=${ENV_PROD} ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    }
                 }
             }
         }
