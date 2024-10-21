@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Jenkins credentials ID
         DOCKER_IMAGE = 'kareemelsayyad/devops' // Docker image name
-        DOCKER_TAG = 'latest' // Tag for the image
+        DOCKER_TAG = '${env.BUILD_NUMBER}' // Tag for the image
         SLACK_CHANNEL = '#jenkins_notification' // Slack channel to send notifications
         SLACK_CREDENTIALS_ID = 'slack_new' // Jenkins credentials ID for Slack
     }
@@ -78,7 +78,7 @@ pipeline {
                         sh 'docker rm my_container || true'
     
                         // Run the new container
-                        sh "docker run -d --name my_container -e DB_CONNECTION_STRING=${ENV_PROD} ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "docker run -d -p 3000:3000 --name my_container -e DB_CONNECTION_STRING=${ENV_PROD} ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     }
                 }
             }
