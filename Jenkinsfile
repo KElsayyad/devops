@@ -16,11 +16,31 @@ pipeline {
                 git 'https://github.com/KElsayyad/devops.git'
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('Testing') {
             steps {
-		withCredentials([string(credentialsId: 'DB_CONNECTION_STRING', variable: 'ENV_PROD')]) {
-                            sh 'echo "DB_CONNECTION_STRING = ${ENV_PROD}" >> .env.production'
+                withCredentials([string(credentialsId: 'DB_CONNECTION_STRING', variable: 'ENV_PROD')]) {
+                    sh 'echo "DB_CONNECTION_STRING = ${ENV_PROD}" >> .env.testing'
+                }
+                script {
+                    try {
+                        sh 'npm install'
+                        sh 'npm test'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE' // Mark build as failure
+                        error("Tests failed: ${e}") // Stop the pipeline
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            when {
+                expression { currentBuild.result != 'FAILURE' } // Only proceed if tests passed
+            }
+            steps {
+                withCredentials([string(credentialsId: 'DB_CONNECTION_STRING', variable: 'ENV_PROD')]) {
+                    sh 'echo "DB_CONNECTION_STRING = ${ENV_PROD}" >> .env.production'
                 }
                 script {
                     // Build the Docker image
@@ -30,6 +50,9 @@ pipeline {
         }
         
         stage('Push to Docker Hub') {
+            when {
+                expression { currentBuild.result != 'FAILURE' } // Only proceed if tests passed
+            }
             steps {
                 script {
                     // Log in to Docker Hub
@@ -42,7 +65,7 @@ pipeline {
         }
     }
 
-   post {
+    post {
         success {
             script {
                 // Send success notification to Slack
@@ -61,3 +84,4 @@ pipeline {
         }
     }
 }
+
