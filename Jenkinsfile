@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Jenkins credentials ID
         DOCKER_IMAGE = 'kareemelsayyad/devops' // Docker image name
-        DOCKER_TAG = '${env.BUILD_NUMBER}' // Tag for the image
+        DOCKER_TAG = "${env.BUILD_NUMBER}" // Tag for the image
         SLACK_CHANNEL = '#jenkins_notification' // Slack channel to send notifications
         SLACK_CREDENTIALS_ID = 'slack_new' // Jenkins credentials ID for Slack
     }
