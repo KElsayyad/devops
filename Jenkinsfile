@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'dockerhub_id' // Jenkins credentials ID
-        DOCKER_IMAGE = 'kareemelsayyad/devops_project' // Docker image name
+        DOCKER_IMAGE = 'kareemelsayyad/devops' // Docker image name
         DOCKER_TAG = 'latest' // Tag for the image
         SLACK_CHANNEL = '#jenkins_notification' // Slack channel to send notifications
         SLACK_CREDENTIALS_ID = 'slack_new' // Jenkins credentials ID for Slack
@@ -24,8 +24,10 @@ pipeline {
                 }
                 script {
                     try {
-                        sh 'npm install'
-                        sh 'npm test'
+			nodejs('node-18') {
+                           sh 'npm install'
+                           sh 'npm test'
+			}
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE' // Mark build as failure
                         error("Tests failed: ${e}") // Stop the pipeline
@@ -84,4 +86,3 @@ pipeline {
         }
     }
 }
-
